@@ -1,6 +1,6 @@
 # TermoApp - Gerador de Termos de Entrega
 
-Um gerador automatizado de termos de entrega para as empresas PACTO e MOOVZ. Conecta-se à API do Google Sheets para buscar informações de patrimônios e insere automaticamente os dados no documento de termo de entrega. Isso agiliza e otimiza o processo de registro de equipamentos, eliminando a necessidade de acessar e inserir manualmente cada dado no arquivo.
+Um gerador automatizado de termos de entrega. Conecta-se à API do Google Sheets para buscar informações de patrimônios e insere automaticamente os dados no documento de termo de entrega. Isso agiliza e otimiza o processo de registro de equipamentos, eliminando a necessidade de acessar e inserir manualmente cada dado no arquivo.
 
 ## 🚀 Funcionalidades
 
@@ -91,7 +91,7 @@ docker run -p 5000:5000 termoapp
 ## 🏗️ Estrutura do Projeto
 
 ```
-termoapp-web/
+termoApp/
 ├── src/
 │   ├── app.py              # Aplicação Flask principal
 │   ├── utils.py            # Utilitários para documentos e Google Sheets
@@ -100,7 +100,7 @@ termoapp-web/
 │   ├── cache.py            # Sistema de cache
 │   ├── config.py           # Configurações da aplicação
 │   ├── static/
-│   │   ├── enhanced.js     # JavaScript com validação em tempo real
+│   │   ├── script.js     # JavaScript com validação em tempo real
 │   │   ├── styles.css      # Estilos CSS
 │   │   └── logo2.png       # Logo da aplicação
 │   └── templates/
@@ -156,8 +156,3 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 ## 👨‍💻 Criador
 
 **Enrique Ribeiro**
-
-## 📞 Suporte
-
-Para suporte, entre em contato através de:
-- Issues no GitHub
