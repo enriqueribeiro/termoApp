@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  termoapp:
+    build: .
+    container_name: termoapp-web
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SHEET_ID=${SHEET_ID}
+      - CREDENTIALS=${CREDENTIALS}
+      - REDIS_URL=redis://redis:6379/0
+      - CACHE_TTL=3600
+      - LOG_LEVEL=INFO
+      - LOG_FILE=logs/termoapp.log
+      - LIBREOFFICE_PATH=/usr/bin/libreoffice
+    volumes:
+      - ./entrega_docx:/app/entrega_docx
+      - ./entrega_pdf:/app/entrega_pdf
+      - ./logs:/app/logs
+      - ./credentials:/app/credentials:ro
+      - ./modelos:/app/modelos:ro
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - termoapp-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: termoapp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - termoapp-network
+
+volumes:
+  redis_data:
+
+networks:
+  termoapp-network:
+    driver: bridge 
