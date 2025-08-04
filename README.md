@@ -76,7 +76,7 @@ docker run -p 5000:5000 termoapp
    - **Função**: Cargo/função do funcionário
    - **Departamento**: Departamento selecionado
    - **Telefone**: Número de telefone (11 dígitos)
-   - **Empresa**: PACTO ou MOOVZ
+   - **Empresa**: PACTO, MOOVZ PERSONALFIT, FYPAY
    - **Patrimônios**: Lista de equipamentos/patrimônios
    - **Observações**: Observações adicionais (opcional)
 
