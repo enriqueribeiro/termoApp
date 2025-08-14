@@ -175,25 +175,51 @@ class DocumentEditor:
                 run.font.size = Pt(7)
         celula_mesclada.vertical_alignment = WVA.CENTER
 
-    def converter_para_pdf_libreoffice(self, nomedoc, pasta_saida="entrega_pdf"): # Está sendo usado
-        caminho_soffice = os.getenv("LIBREOFFICE_PATHWIN", "LIBREOFFICE_PATHLIN")
+    def converter_para_pdf_libreoffice(self, nomedoc, pasta_saida="entrega_pdf"): 
+        # Detecta o sistema operacional e define o caminho do LibreOffice
+        import platform
+        sistema_os = platform.system()
+        print(f"🔍 Sistema operacional detectado: {sistema_os}")
+        
+        if sistema_os == "Windows":
+            caminho_soffice = "C:\\Program Files\\LibreOffice\\program\\soffice.exe"
+            print(f"🪟 Caminho Windows: {caminho_soffice}")
+        else:
+            # Linux/Docker - caminho padrão do LibreOffice
+            caminho_soffice = "/usr/bin/libreoffice"
+            print(f"🐧 Caminho Linux/Docker: {caminho_soffice}")
+        
         if not os.path.exists(pasta_saida):
             os.makedirs(pasta_saida)
+        
         try:
+            # Verifica se o LibreOffice está disponível
+            if not os.path.exists(caminho_soffice):
+                raise FileNotFoundError(f"LibreOffice não encontrado em: {caminho_soffice}")
+            
+            print(f"🚀 Executando: {caminho_soffice}")
             subprocess.run([
                 caminho_soffice,
                 "--headless",
                 "--norestore",
-                "nolockcheck",
+                "--nolockcheck",
                 "--nofirststartwizard",
                 "--nologo",
                 "--convert-to", "pdf",
                 "--outdir", pasta_saida,
                 nomedoc
-            ], check=True)
+            ], check=True, capture_output=True, text=True)
             print("\n✅ Conversão concluída.")
         except subprocess.CalledProcessError as e:
-            print("❌ Erro na conversão:", e)
+            print(f"❌ Erro na conversão: {e}")
+            print(f"Erro de saída: {e.stderr}")
+        except FileNotFoundError as e:
+            print(f"❌ {e}")
+            print("💡 Certifique-se de que o LibreOffice está instalado")
+        except Exception as e:
+            print(f"❌ Erro inesperado na conversão: {e}")
+            print(f"Tipo de erro: {type(e)}")
+            print(f"Detalhes: {str(e)}")
 
     def salvar(self, nome_colaborador=None):
         if not os.path.exists("entrega_docx"):

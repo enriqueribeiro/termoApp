@@ -69,17 +69,15 @@ const VALIDATION_RULES = {
   },
   patrimonio: {
     required: true,
-    minLength: 2,
-    maxLength: 50,
+    pattern: /^[A-Z]{2,}\d+$/i,  // At least 2 letters followed by numbers
     messages: {
       required: "Patrimônio é obrigatório",
-      minLength: "Patrimônio deve ter pelo menos 2 caracteres",
-      maxLength: "Patrimônio deve ter no máximo 50 caracteres"
+      pattern: "Formato inválido. Deve ter pelo menos 2 letras seguidas de números. Ex: CEL001, PC123, FON456"
     }
   },
   observacao: {
     required: false,
-    maxLength: 500,
+    maxLength: 100,
     messages: {
       maxLength: "Observação deve ter no máximo 500 caracteres"
     }
@@ -508,8 +506,8 @@ function showSuccessAndReset() {
 
     msg.innerHTML = `
       <div style="text-align:center;color:#111827">
-        <h3>Documento baixado.</h3>
-        <button id="reset-page-btn" style="margin-top:1em;padding:0.5em 2em;">Novo envio</button>
+        <h3>Documento baixado com sucesso!</h3>
+        <p style="margin-top:0.5em;color:#6b7280;">A página será recarregada automaticamente...</p>
       </div>
     `;
     document.body.appendChild(msg);
@@ -518,12 +516,12 @@ function showSuccessAndReset() {
       msg.style.opacity = '1';
     }, 200);
 
-    document.getElementById('reset-page-btn').onclick = () => {
-      // Remove overlay and message before reload
+    // Auto-reload page after 3 seconds
+    setTimeout(() => {
       msg.remove();
       overlay.remove();
       window.location.reload();
-    };
+    }, 3000);
   }
 
   // Fade out spinner overlay, then show after-download overlay/message

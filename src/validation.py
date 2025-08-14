@@ -140,27 +140,44 @@ class FieldValidator:
     
     @staticmethod
     def validate_asset(value: str, field_name: str) -> ValidationResult:
-        """Validate asset/patrimonio field."""
+        """Validate asset/patrimonio field with specific format patterns."""
         if not value:
             return ValidationResult(is_valid=True)  # Let required validation handle empty
         
-        # Check for minimum length
-        if len(value.strip()) < 2:
+        patrimonio_limpo = value.strip().upper()
+        
+        # Define valid patrimônio patterns - must have at least 2 letters before numbers
+        valid_patterns = [
+            r'^CEL\d+$',      # CELxxx (CEL + números)
+            r'^PC\d+$',       # PCxxx (PC + números)
+            r'^FON\d+$',      # FONxxx (FON + números)
+            r'^MO\d+$',       # MOxxx (MO + números)
+            r'^NOT\d+$',      # NOTxxx (NOT + números)
+            r'^IMP\d+$',      # IMPxxx (IMP + números)
+            r'^FRAG\d+$',     # FRAGxxx (FRAG + números)
+            r'^CAD\d+$'       # CADxxx (CAD + números)
+        ]
+        
+        # Additional validation: must have at least 2 letters before numbers
+        if not re.match(r'^[A-Z]{2,}\d+$', patrimonio_limpo):
             return ValidationResult(
                 is_valid=False,
-                error_message="Patrimônio deve ter pelo menos 2 caracteres",
+                error_message="Patrimônio deve ter pelo menos 2 letras seguidas de números",
                 field_name=field_name
             )
         
-        # Check for maximum length
-        if len(value.strip()) > 50:
-            return ValidationResult(
-                is_valid=False,
-                error_message="Patrimônio deve ter no máximo 50 caracteres",
-                field_name=field_name
-            )
+        # Check if patrimonio matches any valid pattern
+        for pattern in valid_patterns:
+            if re.match(pattern, patrimonio_limpo):
+                return ValidationResult(is_valid=True)
         
-        return ValidationResult(is_valid=True)
+        # If no pattern matches, return error with valid examples
+        valid_examples = "CEL001, PC123, FON456, MO789, NOT101, IMP202, FRAG303, CAD404"
+        return ValidationResult(
+            is_valid=False,
+            error_message=f"Formato inválido. Use um destes formatos: {valid_examples}",
+            field_name=field_name
+        )
     
     @staticmethod
     def validate_observation(value: str, field_name: str) -> ValidationResult:

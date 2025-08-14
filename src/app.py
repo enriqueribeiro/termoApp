@@ -146,9 +146,17 @@ def index():
                 "numero": dados_usuario["numero"],
                 "empresa": dados_usuario["empresa"]
             })
-            # 3. Process each asset with caching
+            # 3. Process each asset with caching and safety limits
             if not SHEET_ID:
                 raise GoogleSheetsError("SHEET_ID not configured", "", "metadata_fetch")
+            
+            # Safety limit: maximum 10 assets per request to prevent mass updates
+            MAX_ASSETS_PER_REQUEST = 10
+            if len(patrimonios) > MAX_ASSETS_PER_REQUEST:
+                raise ValidationError(
+                    f"Máximo de {MAX_ASSETS_PER_REQUEST} patrimônios por requisição permitido",
+                    "patrimonio"
+                )
             
             sh = SheetsHandler(SHEET_ID)
             try:
@@ -166,6 +174,8 @@ def index():
             # Store all found items
             todos_itens = []
             assets_not_found = []
+            total_updates = 0
+            MAX_UPDATES_PER_REQUEST = 50  # Safety limit for total spreadsheet updates
             
             for i, patrimonio in enumerate(patrimonios):
                 if patrimonio:
@@ -180,14 +190,25 @@ def index():
                         log_google_sheets_operation("asset_search", patrimonio, bool(resultados))
                     
                     if resultados:
+                        # Safety check: limit number of results per asset to prevent mass updates
+                        if len(resultados) > 5:
+                            logger.warning(f"Too many results for {patrimonio}: {len(resultados)} results, limiting to 5")
+                            resultados = resultados[:5]
+                        
                         # For each result (item) found for this asset
                         for resultado in resultados:
+                            # Safety check: limit total updates
+                            if total_updates >= MAX_UPDATES_PER_REQUEST:
+                                logger.warning(f"Reached maximum updates limit ({MAX_UPDATES_PER_REQUEST}) for request")
+                                break
+                            
                             aba, linha, valores = resultado
                             try:
                                 # Update spreadsheet
                                 sh = SheetsHandler(SHEET_ID)
                                 sh.altera_proprietario(SHEET_ID, aba, linha, dados_usuario["nome"])
                                 sh.altera_departamento(SHEET_ID, aba, linha, dados_usuario["departamento"])
+                                total_updates += 1
                                 log_google_sheets_operation("update_owner", f"{aba}:{linha}", True)
                             except Exception as e:
                                 log_google_sheets_operation("update_owner", f"{aba}:{linha}", False, str(e))
@@ -223,31 +244,62 @@ def index():
                     if item["observacao"]:
                         editor.adicionar_linha_mesclada(f"OBS: {item['observacao'].upper()}")
                     patrimonio_atual = item["patrimonio"]
-            # 5. Generate unique filenames
+            # 5. Clean up old files before creating new ones
+            try:
+                # Delete old files from previous requests
+                for folder in ['entrega_docx', 'entrega_pdf']:
+                    if os.path.exists(folder):
+                        for old_file in os.listdir(folder):
+                            if old_file.startswith(f"Termo_entrega_{dados_usuario['nome']}_"):
+                                old_path = os.path.join(folder, old_file)
+                                try:
+                                    os.remove(old_path)
+                                    logger.info(f"Deleted old file: {old_path}")
+                                except Exception as e:
+                                    logger.warning(f"Could not delete old file {old_path}: {e}")
+            except Exception as e:
+                logger.warning(f"Error during cleanup of old files: {e}")
+            
+            # 6. Generate unique filenames
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             nome_base = f"Termo_entrega_{dados_usuario['nome']}_{timestamp}"
             docx_path = os.path.join('entrega_docx', f"{nome_base}.docx")
             base_dir = os.path.dirname(app.root_path)
             pdf_path = os.path.join(base_dir, 'entrega_pdf', f"{nome_base}.pdf")
-            # 6. Save DOCX
+            # 7. Save DOCX
             editor.documento.save(docx_path)
-            # 7. Convert to PDF
+            # 8. Convert to PDF
             editor.converter_para_pdf_libreoffice(
                 nomedoc=docx_path, 
                 pasta_saida='entrega_pdf'
             )
             if not os.path.exists(pdf_path):
                 return f"Erro: PDF não gerado em {pdf_path}", 500
+            # 9. Return PDF for download with cleanup after download completes
             @after_this_request
             def cleanup(response):
+                # Add a small delay to ensure download starts
+                time.sleep(0.5)
                 for path in [docx_path, pdf_path]:
                     try:
                         if os.path.exists(path):
-                            os.remove(path)
+                            # Try multiple times with delays
+                            for attempt in range(3):
+                                try:
+                                    os.remove(path)
+                                    break
+                                except PermissionError:
+                                    if attempt < 2:  # Not the last attempt
+                                        time.sleep(1)  # Wait 1 second before retry
+                                    else:
+                                        app.logger.warning(f"Could not delete {path} after 3 attempts")
+                                except Exception as e:
+                                    app.logger.error(f"Erro ao excluir {path}: {str(e)}")
+                                    break
                     except Exception as e:
                         app.logger.error(f"Erro ao excluir {path}: {str(e)}")
                 return response
-            # 8. Return PDF for download
+            
             return send_file(
                 pdf_path,
                 as_attachment=True,
@@ -281,21 +333,6 @@ def index():
             log_request_end(request_id=request_id, response_time=response_time, status_code=200)
     
     return render_template("index.html")
-
-def generate_progress():
-    """
-    Example generator for progress updates (used for streaming progress to frontend if needed).
-    """
-    sleep(3)
-    yield 'data: ✔️ Proprietário atualizado na planilha\n\n'
-    sleep(3)
-    yield 'data: ✔️ Departamento atualizado na planilha\n\n'
-    sleep(3)
-    yield 'data: DONE\n\n'
-
-@app.route('/progress')
-def progress():
-    return Response(stream_with_context(generate_progress()), mimetype='text/event-stream')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
