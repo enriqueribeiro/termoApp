@@ -29,15 +29,6 @@ Os logs são salvos em formato JSON estruturado e incluem:
 - Erros e exceções
 - Métricas de performance
 
-## 📄 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
 ## 👨‍💻 Criador
 
 **Enrique Ribeiro**
-
-## 📞 Suporte
-
-Para suporte, entre em contato através de:
-- Issues no GitHub
