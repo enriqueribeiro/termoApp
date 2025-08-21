@@ -1,6 +1,6 @@
 # TermoApp - Gerador de Termos de Entrega
 
-Um gerador automatizado de termos de entrega para as empresas PACTO e MOOVZ. Conecta-se à API do Google Sheets para buscar informações de patrimônios e insere automaticamente os dados no documento de termo de entrega. Isso agiliza e otimiza o processo de registro de equipamentos, eliminando a necessidade de acessar e inserir manualmente cada dado no arquivo.
+Um gerador automatizado de termos de entrega com templates diversos. Conecta-se à API do Google Sheets para buscar informações de patrimônios e insere automaticamente os dados no documento de termo de entrega. Isso agiliza e otimiza o processo de registro de equipamentos, eliminando a necessidade de acessar e inserir manualmente cada dado no arquivo.
 
 ## 🚀 Funcionalidades
 
