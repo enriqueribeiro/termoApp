@@ -9,7 +9,7 @@ from dataclasses import dataclass
 @dataclass
 class ValidationRule:
     """Represents a validation rule with custom error message."""
-    validator: callable
+    validator: callable # pyright: ignore[reportGeneralTypeIssues]
     error_message: str
     field_name: str
 
@@ -280,7 +280,7 @@ class FormValidator:
                     })
         
         # Validate assets
-        assets = form_data.getlist('patrimonio[]') if hasattr(form_data, 'getlist') else form_data.get('patrimonio[]', [])
+        assets = form_data.getlist('patrimonio[]') if hasattr(form_data, 'getlist') else form_data.get('patrimonio[]', []) # pyright: ignore[reportAttributeAccessIssue]
         if not assets or not any(asset.strip() for asset in assets):
             errors.append({
                 'field': 'patrimonio',
@@ -297,7 +297,7 @@ class FormValidator:
                         })
         
         # Validate observations (optional)
-        observations = form_data.getlist('observacao[]') if hasattr(form_data, 'getlist') else form_data.get('observacao[]', [])
+        observations = form_data.getlist('observacao[]') if hasattr(form_data, 'getlist') else form_data.get('observacao[]', []) # pyright: ignore[reportAttributeAccessIssue]
         for i, observation in enumerate(observations):
             if observation.strip():
                 result = self.validator.validate_observation(observation, f'observacao_{i}')

@@ -1,37 +1,30 @@
-"""
-FUNCIONANDO POREM FALTA SUBIR PRO DOCKERRR
-ALTERAR OS PATHS PARA LINUX E CONFIRMAR SE TA TUDO FUNCIONANDO BELEZURA
-"""
-
 import os
 import uuid
 import time
-import re
-from flask import Flask, render_template, request, send_file, after_this_request, Response, stream_with_context, jsonify
+from flask import Flask, render_template, request, send_file, after_this_request, jsonify
 try:
     from .utils import DocumentEditor, SheetsHandler
 except ImportError:
     from utils import DocumentEditor, SheetsHandler
-from time import sleep
 from dotenv import load_dotenv
 from datetime import datetime
 try:
-    from .logger import logger, log_request_start, log_request_end, log_document_generation, log_google_sheets_operation, log_file_operation
+    from .logger import logger, log_request_start, log_request_end, log_google_sheets_operation, log_file_operation
     from .exceptions import (
         TermoAppException, DocumentGenerationError, GoogleSheetsError, 
         FileOperationError, ValidationError, ConfigurationError, 
-        PDFConversionError, AssetNotFoundError, TemplateNotFoundError
+        TemplateNotFoundError
     )
-    from .cache import GoogleSheetsCache, TemplateCache, DocumentCache
+    from .cache import GoogleSheetsCache
     from .validation import FormValidator
 except ImportError:
-    from logger import logger, log_request_start, log_request_end, log_document_generation, log_google_sheets_operation, log_file_operation
+    from logger import logger, log_request_start, log_request_end, log_google_sheets_operation, log_file_operation
     from exceptions import (
         TermoAppException, DocumentGenerationError, GoogleSheetsError, 
         FileOperationError, ValidationError, ConfigurationError, 
-        PDFConversionError, AssetNotFoundError, TemplateNotFoundError
+        TemplateNotFoundError
     )
-    from cache import GoogleSheetsCache, TemplateCache, DocumentCache
+    from cache import GoogleSheetsCache
     from validation import FormValidator
 
 # Load environment variables
@@ -183,7 +176,7 @@ def index():
                         # Try to get search results from cache
                         resultados = GoogleSheetsCache.search_assets(SHEET_ID, patrimonio, sheet_names)
                         log_google_sheets_operation("asset_search", patrimonio, True)
-                    except Exception as e:
+                    except Exception:
                         logger.warning(f"Cache miss for asset search: {patrimonio}")
                         sh = SheetsHandler(SHEET_ID)
                         resultados = sh.buscar_palavra_em_abas(patrimonio, sheet_names)

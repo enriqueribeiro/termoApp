@@ -30,7 +30,7 @@ class CacheManager:
         
         if REDIS_AVAILABLE and redis_url:
             try:
-                self._redis_client = redis.from_url(redis_url)
+                self._redis_client = redis.from_url(redis_url) # pyright: ignore[reportPossiblyUnboundVariable]
                 # Test connection
                 self._redis_client.ping()
                 logger.info("Redis cache initialized successfully")

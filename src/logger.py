@@ -2,8 +2,7 @@ import logging
 import json
 import sys
 from datetime import datetime
-from typing import Any, Dict, Optional
-import os
+from typing import Optional
 from pathlib import Path
 
 class StructuredFormatter(logging.Formatter):
@@ -26,7 +25,7 @@ class StructuredFormatter(logging.Formatter):
         
         # Add extra fields if present
         if hasattr(record, 'extra_fields'):
-            log_entry.update(record.extra_fields)
+            log_entry.update(record.extra_fields) # pyright: ignore[reportAttributeAccessIssue]
         
         return json.dumps(log_entry, ensure_ascii=False)
 
@@ -39,17 +38,17 @@ class RequestFormatter(StructuredFormatter):
         
         # Add request-specific fields if available
         if hasattr(record, 'request_id'):
-            log_entry['request_id'] = record.request_id
+            log_entry['request_id'] = record.request_id # type: ignore
         if hasattr(record, 'user_agent'):
-            log_entry['user_agent'] = record.user_agent
+            log_entry['user_agent'] = record.user_agent # pyright: ignore[reportAttributeAccessIssue]
         if hasattr(record, 'ip_address'):
-            log_entry['ip_address'] = record.ip_address
+            log_entry['ip_address'] = record.ip_address # pyright: ignore[reportAttributeAccessIssue]
         if hasattr(record, 'endpoint'):
-            log_entry['endpoint'] = record.endpoint
+            log_entry['endpoint'] = record.endpoint # pyright: ignore[reportAttributeAccessIssue]
         if hasattr(record, 'method'):
-            log_entry['method'] = record.method
+            log_entry['method'] = record.method # pyright: ignore[reportAttributeAccessIssue]
         if hasattr(record, 'response_time'):
-            log_entry['response_time'] = record.response_time
+            log_entry['response_time'] = record.response_time # pyright: ignore[reportAttributeAccessIssue]
         
         return json.dumps(log_entry, ensure_ascii=False)
 
@@ -157,7 +156,7 @@ def log_document_generation(user_name: str, company: str, asset_count: int, requ
         request_id=request_id
     )
 
-def log_google_sheets_operation(operation: str, sheet_name: str, success: bool, error: str = None):
+def log_google_sheets_operation(operation: str, sheet_name: str, success: bool, error: Optional[str] = None):
     """Log Google Sheets operations."""
     log_with_context(
         logger, "INFO" if success else "ERROR", f"Google Sheets {operation}",
@@ -167,7 +166,7 @@ def log_google_sheets_operation(operation: str, sheet_name: str, success: bool, 
         error=error
     )
 
-def log_file_operation(operation: str, file_path: str, success: bool, error: str = None):
+def log_file_operation(operation: str, file_path: str, success: bool, error: Optional[str] = None):
     """Log file operations."""
     log_with_context(
         logger, "INFO" if success else "ERROR", f"File {operation}",
